@@ -67,7 +67,7 @@ from . import csatqa
 from . import haerae
 from . import cmmlu
 from . import gaokao
-
+from . import userdata
 ########################################
 # Translation tasks
 ########################################
@@ -350,6 +350,7 @@ TASK_REGISTRY = {
     **ceval.create_all_tasks(),
     **cmmlu.create_all_tasks(),
     **gaokao.create_all_tasks(),
+    "private":userdata.UserDataGen,
 }
 
 
