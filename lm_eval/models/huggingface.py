@@ -359,10 +359,12 @@ class HuggingFaceAutoLM(BaseLM):
             revision=revision + ("/" + subfolder if subfolder is not None else ""),
             trust_remote_code=trust_remote_code,
         )
-        try:
-            tokenizer.pad_token = tokenizer.eos_token
-        except AttributeError:
-            print("tokenizer.pad_token is readonly")
+        if tokenizer.pad_token == None:
+            try:
+                tokenizer.pad_token = tokenizer.eos_token
+                tokenizer.pad_token_id = tokenizer.eos_token_id
+            except AttributeError:
+                print("tokenizer.pad_token is readonly")
         return tokenizer
 
     @property
@@ -501,7 +503,10 @@ class HuggingFaceAutoLM(BaseLM):
             for response in responses:
                 # Ensure the generated responses do not contain the stop sequences.
                 for term in until:
-                    response = response.split(term)[0]
+                    if term:
+                        response = response.split(term)[0]
+                    else:
+                        response = response.strip()
                 # partial caching
                 self.cache_hook.add_partial("greedy_until", (context, until), response)
                 results.append(response)
@@ -569,6 +574,8 @@ class AutoCausalLM(HuggingFaceAutoLM):
             max_new_tokens=max_tokens,
             stopping_criteria=stopping_criteria,
             do_sample=False,
+            eos_token_id=self.tokenizer.eos_token_id,
+            pad_token_id=self.tokenizer.pad_token_id,
         )
         return utils.select_continuation_from_batch_left_padding(
             generations, max_context_size=inputs["input_ids"].size(1)
