@@ -174,7 +174,8 @@ class AGIEvalSubject(Task):
 
         self.dataset = datasets.load_dataset(
             'json',
-            data_files=data_path
+            data_files=data_path,
+            cache_dir=cache_dir,
         )
 
     def has_training_docs(self):
@@ -344,6 +345,7 @@ class AGIEvalSubject(Task):
         return description + labeled_examples + example
  
     def construct_requests(self, doc, ctx):
+        # completion = rf.greedy_until(ctx, {"until": [], "model_max_length": 4096})
         completion = rf.greedy_until(ctx, {"until": []})
         return completion
 

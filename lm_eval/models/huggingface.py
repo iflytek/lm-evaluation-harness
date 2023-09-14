@@ -358,12 +358,13 @@ class HuggingFaceAutoLM(BaseLM):
             pretrained if tokenizer is None else tokenizer,
             revision=revision + ("/" + subfolder if subfolder is not None else ""),
             trust_remote_code=trust_remote_code,
-            use_fast=False
         )
-        try:
-            tokenizer.pad_token = tokenizer.eos_token
-        except AttributeError:
-            print("tokenizer.pad_token is readonly")
+        if tokenizer.pad_token == None:
+            try:
+                tokenizer.pad_token = tokenizer.eos_token
+                tokenizer.pad_token_id = tokenizer.eos_token_id
+            except AttributeError:
+                print("tokenizer.pad_token is readonly")
         return tokenizer
 
     @property
@@ -452,7 +453,12 @@ class HuggingFaceAutoLM(BaseLM):
         def _collate(x):
             tokens = self.tok_encode(x[0])
             return len(tokens), x[0]
-
+        model_max_length = requests[0][1].get('model_max_length')
+        if model_max_length is not None:
+            model_max_length
+            self._max_length = model_max_length
+            self.tokenizer.model_max_length = model_max_length
+            
         results = []
         reorder = utils.Reorderer(requests, _collate)
 
@@ -502,10 +508,15 @@ class HuggingFaceAutoLM(BaseLM):
             for response in responses:
                 # Ensure the generated responses do not contain the stop sequences.
                 for term in until:
-                    response = response.split(term)[0]
+                    if term:
+                        response = response.split(term)[0]
+                    else:
+                        response = response.strip()
                 # partial caching
                 self.cache_hook.add_partial("greedy_until", (context, until), response)
                 results.append(response)
+            # del responses, token_context, context
+            # torch.cuda.empty_cache()
         return reorder.get_original(results)
 
 
@@ -570,6 +581,8 @@ class AutoCausalLM(HuggingFaceAutoLM):
             max_new_tokens=max_tokens,
             stopping_criteria=stopping_criteria,
             do_sample=False,
+            eos_token_id=self.tokenizer.eos_token_id,
+            pad_token_id=self.tokenizer.pad_token_id,
         )
         return utils.select_continuation_from_batch_left_padding(
             generations, max_context_size=input_ids.size(1)
@@ -580,10 +593,6 @@ class AutoCausalLM(HuggingFaceAutoLM):
 class AutoModelForChatglm(AutoCausalLM):
     AUTO_MODEL_CLASS = transformers.AutoModel
     
-    # Default max sequence length setting for when no `max_length` is provided
-    # or no max length config setting is found in the model or tokenizer.
-    _DEFAULT_MAX_LENGTH: int = 2048
-
     def __init__(
         self,
         pretrained: str,
