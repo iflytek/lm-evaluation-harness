@@ -69,6 +69,7 @@ from . import cmmlu
 from . import gaokao
 from . import agieval
 
+from . import userdata
 ########################################
 # Translation tasks
 ########################################

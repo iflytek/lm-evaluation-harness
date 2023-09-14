@@ -196,7 +196,9 @@ class HuggingFaceAutoLM(BaseLM):
             trust_remote_code=trust_remote_code,
             revision=revision + ("/" + subfolder if subfolder is not None else ""),
         )
-
+        use_fast : bool = True
+        if self._config.architectures[0] == 'LLaMAForCausalLM' and self._config.max_position_embeddings == 2048:
+            use_fast = False
         self._add_special_tokens = add_special_tokens
         self.tokenizer = self._create_auto_tokenizer(
             pretrained=pretrained,
@@ -204,6 +206,7 @@ class HuggingFaceAutoLM(BaseLM):
             subfolder=subfolder,
             tokenizer=tokenizer,
             trust_remote_code=trust_remote_code,
+            use_fast=use_fast,
         )
         self.tokenizer.model_max_length = self.max_length
 
@@ -352,10 +355,12 @@ class HuggingFaceAutoLM(BaseLM):
         subfolder: str,
         tokenizer: Optional[str] = None,
         trust_remote_code: Optional[bool] = False,
+        use_fast: Optional[bool] = True
     ) -> transformers.PreTrainedTokenizer:
         """Returns a pre-trained tokenizer from a pre-trained tokenizer configuration."""
         tokenizer = self.AUTO_TOKENIZER_CLASS.from_pretrained(
             pretrained if tokenizer is None else tokenizer,
+            use_fast=use_fast,
             revision=revision + ("/" + subfolder if subfolder is not None else ""),
             trust_remote_code=trust_remote_code,
         )
@@ -537,6 +542,7 @@ class AutoCausalLM(HuggingFaceAutoLM):
         subfolder: str,
         tokenizer: Optional[str] = None,
         trust_remote_code: Optional[bool] = False,
+        use_fast: Optional[bool] = True
     ) -> transformers.PreTrainedTokenizer:
         tokenizer = super()._create_auto_tokenizer(
             pretrained=pretrained,
@@ -544,6 +550,7 @@ class AutoCausalLM(HuggingFaceAutoLM):
             subfolder=subfolder,
             tokenizer=tokenizer,
             trust_remote_code=trust_remote_code,
+            use_fast=use_fast
         )
         tokenizer.padding_side = "left"
         return tokenizer

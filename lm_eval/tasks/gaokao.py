@@ -138,6 +138,7 @@ class GaoKaoBenchSubject(Task):
         return self.dataset["dev"]
 
     def fewshot_context(self, doc, num_fewshot, **kwargs):
+        assert num_fewshot == 0, "gaokao-bench is intended only for the zero-shot setting."
         keyword = self.DATASET_NAME
         for subject in SUBJECTS:
             if subject["keyword"] == keyword:
