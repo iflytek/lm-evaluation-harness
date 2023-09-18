@@ -117,6 +117,9 @@ SUBJECTS=[
     # "math", # TODO: 包括填空题
 ]
 
+# 
+RAPID_PREDICTION = True
+
 english_qa_datasets = ["lsat-ar", "lsat-lr", "lsat-rc", "logiqa-en", "sat-math", "sat-en", "aqua-rat",
                        "sat-en-without-passage", "gaokao-english"]
 chinese_qa_datasets = ["logiqa-zh", "jec-qa-kd", "jec-qa-ca", "gaokao-chinese", "gaokao-geography", "gaokao-history",
@@ -132,7 +135,14 @@ def create_all_tasks():
     :return: {task_name: task}
         e.g. {agi_eval-agronomy: Task, agi_eval-anatomy: Task}
     """
-    return {f"agi_eval-{sub['keyword']}": create_task(sub["keyword"], sub["type"]) for sub in SUBJECTS}
+    
+    taskList = { }
+    for sub in SUBJECTS:
+        if RAPID_PREDICTION : 
+            if sub['keyword'] in multi_choice_datasets:
+                continue
+        taskList[f"agi_eval-{sub['keyword']}"] = create_task(sub["keyword"], sub["type"]) 
+    return taskList
 
 
 def create_task(subject, qtype):
@@ -212,7 +222,7 @@ class AGIEvalSubject(Task):
             if isinstance(ans, list):
                 ans = ans[0]
             if ans in "1234567890":
-                gold = chr(ord(ans) - ord('0') +ord('A'))
+                gold = chr(ord(ans) - ord('0') + ord('A'))
             else:
                 gold = ans.upper()
         else:
@@ -345,8 +355,13 @@ class AGIEvalSubject(Task):
         return description + labeled_examples + example
  
     def construct_requests(self, doc, ctx):
-        # completion = rf.greedy_until(ctx, {"until": [], "model_max_length": 4096})
-        completion = rf.greedy_until(ctx, {"until": []})
+        if RAPID_PREDICTION:
+            completion =  [
+                rf.loglikelihood(ctx, " {}".format(choice))[0] for choice in doc["choices"]
+            ]
+        else:
+            # completion = rf.greedy_until(ctx, {"until": [], "model_max_length": 4096})
+            completion = rf.greedy_until(ctx, {"until": []})
         return completion
 
     def _extract_last_line(self, string):
@@ -393,11 +408,16 @@ class AGIEvalSubject(Task):
         :param results:
             The results of the requests created in construct_requests.
         """
-        completion = results[0].strip()
-        standard_answer = doc["gold"]
-        model_answer = self._extract_choice_answer(completion)
-        acc = 1 if self._convert_to_set(standard_answer) == self._convert_to_set(model_answer) else 0 
-        return { "acc": acc }
+        if RAPID_PREDICTION:
+            gold = ord(doc['gold'][0]) - ord('A')
+            pred = np.argmax(results)
+            return {"acc": int(pred == gold)}
+        else:
+            completion = results[0].strip()
+            standard_answer = doc["gold"]
+            model_answer = self._extract_choice_answer(completion)
+            acc = 1 if self._convert_to_set(standard_answer) == self._convert_to_set(model_answer) else 0 
+            return { "acc": acc }
 
     def aggregation(self):
         return { "acc": mean }

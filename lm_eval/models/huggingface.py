@@ -459,6 +459,7 @@ class HuggingFaceAutoLM(BaseLM):
             tokens = self.tok_encode(x[0])
             return len(tokens), x[0]
         model_max_length = requests[0][1].get('model_max_length')
+
         if model_max_length is not None:
             model_max_length
             self._max_length = model_max_length
