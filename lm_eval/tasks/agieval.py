@@ -117,7 +117,10 @@ SUBJECTS=[
     # "math", # TODO: 包括填空题
 ]
 
-# 
+# RAPID_PREDICTION = True 表示 仅仅使用单选数据集（baichuan7b 相同），
+# 使用 loglikelihood 方法进行评测， 
+# RAPID_PREDICTION = False 表示 使用全选数据集（ 与官方提供的代码相同），
+# 通过 greedy_until 方法进行评测，这是生成式评测，速度慢，不推荐使用
 RAPID_PREDICTION = True
 
 english_qa_datasets = ["lsat-ar", "lsat-lr", "lsat-rc", "logiqa-en", "sat-math", "sat-en", "aqua-rat",
