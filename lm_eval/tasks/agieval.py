@@ -158,7 +158,7 @@ def create_task(subject, qtype):
 
 class AGIEvalSubject(Task):
     VERSION = 0
-    DATASET_PATH = "agi_eval/data/v1"
+    DATASET_PATH = "agi_eval"
     DATASET_NAME = None
 
     def __init__(self, subject, qtype):
@@ -192,10 +192,10 @@ class AGIEvalSubject(Task):
         )
 
     def has_training_docs(self):
-        return True
+        return False
 
     def has_validation_docs(self):
-        return True
+        return False
 
     def has_test_docs(self):
         return True
@@ -270,31 +270,34 @@ class AGIEvalSubject(Task):
         return out_doc
 
     def get_zero_sort_example(self, doc):
-        try:
-            passage = doc.get("passage") if doc.get("passage") is not None else ""
-            if self.DATASET_NAME in english_qa_datasets:
-                return passage + "Q: " + doc.get("query") + " " \
-                    + "Answer Choices: " + " ".join(doc.get("choices")) + "\n" + \
-                    "Let's think step by step."
-            
-            elif self.DATASET_NAME in chinese_qa_datasets:
-                option_string = "ABCDEFG"
-                count = len(doc.get("choices"))
-                if count == 1:
-                    count = 4
-                return passage + "问题：" + doc.get("query") + " " \
-                    + "选项：" + " ".join(doc.get("choices")) + "\n" + \
-                    "从A到{}, 我们应选择什么？让我们逐步思考：".format(option_string[count - 1])
-            
-            elif self.DATASET_NAME in english_cloze_datasets:
-                return passage + "Q: " + doc.get("query") + "\n" \
-                        "A: Let's think step by step."
-            
-            elif self.DATASET_NAME in chinese_cloze_datasets:
-                return passage + "问题：" + doc.get("query") + "\n" \
-                        "答案：让我们逐步思考："
-        except NameError:
-            print("Dataset not defined.") 
+        passage = doc.get("passage") if doc.get("passage") is not None else ""
+        if RAPID_PREDICTION:
+            return passage + " " + doc.get("query")
+        else:
+            try:
+                if self.DATASET_NAME in english_qa_datasets:
+                    return passage + "Q: " + doc.get("query") + " " \
+                        + "Answer Choices: " + " ".join(doc.get("choices")) + "\n" + \
+                        "Let's think step by step."
+                
+                elif self.DATASET_NAME in chinese_qa_datasets:
+                    option_string = "ABCDEFG"
+                    count = len(doc.get("choices"))
+                    if count == 1:
+                        count = 4
+                    return passage + "问题：" + doc.get("query") + " " \
+                        + "选项：" + " ".join(doc.get("choices")) + "\n" + \
+                        "从A到{}, 我们应选择什么？让我们逐步思考：".format(option_string[count - 1])
+                
+                elif self.DATASET_NAME in english_cloze_datasets:
+                    return passage + "Q: " + doc.get("query") + "\n" \
+                            "A: Let's think step by step."
+                
+                elif self.DATASET_NAME in chinese_cloze_datasets:
+                    return passage + "问题：" + doc.get("query") + "\n" \
+                            "答案：让我们逐步思考："
+            except NameError:
+                print("Dataset not defined.") 
 
     def get_few_sort_example(self, doc):
         try:
@@ -321,11 +324,9 @@ class AGIEvalSubject(Task):
         else:
             return self.get_few_sort_example(doc)
 
-    def doc_to_target(self, doc, k):
-        # TODO: Fill in the `target` ("gold answer") variable.
-        # The prepended `" "` is required to space out the `doc_to_text` and
-        # `doc_to_target` strings.
-        return doc
+    def doc_to_target(self, doc):
+        target = ''
+        return ' ' + target
 
     def fewshot_context(
         self, doc, num_fewshot, provide_description=None, rnd=None, description=None
@@ -414,6 +415,7 @@ class AGIEvalSubject(Task):
         if RAPID_PREDICTION:
             gold = ord(doc['gold'][0]) - ord('A')
             pred = np.argmax(results)
+            print(self.DATASET_NAME ,'pred', pred, 'gold', gold)
             return {"acc": int(pred == gold)}
         else:
             completion = results[0].strip()

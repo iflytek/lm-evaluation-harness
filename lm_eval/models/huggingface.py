@@ -461,7 +461,6 @@ class HuggingFaceAutoLM(BaseLM):
         model_max_length = requests[0][1].get('model_max_length')
 
         if model_max_length is not None:
-            model_max_length
             self._max_length = model_max_length
             self.tokenizer.model_max_length = model_max_length
             
@@ -521,8 +520,6 @@ class HuggingFaceAutoLM(BaseLM):
                 # partial caching
                 self.cache_hook.add_partial("greedy_until", (context, until), response)
                 results.append(response)
-            # del responses, token_context, context
-            # torch.cuda.empty_cache()
         return reorder.get_original(results)
 
 
@@ -648,6 +645,8 @@ class AutoModelForChatglm(AutoCausalLM):
             attention_mask = inputs["attention_mask"][
                 :, :, self.max_gen_toks - self.max_length :, self.max_gen_toks - self.max_length :
             ]
+        else:
+            assert ValueError('')
 
         input_ids = input_ids.to(self.device)
         attention_mask = attention_mask.to(self.device)
@@ -665,6 +664,8 @@ class AutoModelForChatglm(AutoCausalLM):
             max_new_tokens=max_tokens,
             stopping_criteria=stopping_criteria,
             do_sample=False,
+            eos_token_id=self.tokenizer.eos_token_id,
+            pad_token_id=self.tokenizer.pad_token_id,
         )
         return utils.select_continuation_from_batch_left_padding(
             generations, max_context_size=input_ids.size(1)

@@ -68,7 +68,6 @@ from . import haerae
 from . import cmmlu
 from . import gaokao
 from . import agieval
-
 from . import userdata
 ########################################
 # Translation tasks
@@ -353,6 +352,7 @@ TASK_REGISTRY = {
     **cmmlu.create_all_tasks(),
     **gaokao.create_all_tasks(),
     **agieval.create_all_tasks(),
+    "private":userdata.UserDataGen,
 }
 
 
