@@ -646,7 +646,7 @@ class AutoModelForChatglm(AutoCausalLM):
                 :, :, self.max_gen_toks - self.max_length :, self.max_gen_toks - self.max_length :
             ]
         else:
-            assert ValueError('')
+            raise ValueError('')
 
         input_ids = input_ids.to(self.device)
         attention_mask = attention_mask.to(self.device)
@@ -658,9 +658,6 @@ class AutoModelForChatglm(AutoCausalLM):
         generations = self.model.generate(
             input_ids=input_ids,
             attention_mask=attention_mask,
-            # GPT style models require the `generate` `max_length` arg to include the
-            # context length, so we instead set `max_new_tokens` which is the number
-            # of new tokens to generate, excluding the current number of tokens.
             max_new_tokens=max_tokens,
             stopping_criteria=stopping_criteria,
             do_sample=False,
@@ -669,7 +666,6 @@ class AutoModelForChatglm(AutoCausalLM):
         )
         return utils.select_continuation_from_batch_left_padding(
             generations, max_context_size=input_ids.size(1)
-            # generations, max_context_size=inputs["input_ids"].size(1)
         )
         
 
