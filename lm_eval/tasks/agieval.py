@@ -49,70 +49,70 @@ SUBJECTS=[
         "type": "single_choice",
         "keyword" : "lsat-lr", 
     },
-    # {
-    #     "type": "single_choice",
-    #     "keyword" : "sat-math",
-    # },
-    # {
-    #     "type": "single_choice",
-    #     "keyword" : "gaokao-biology", 
-    # },
-    # {
-    #     "type": "single_choice",
-    #     "keyword" : "gaokao-history", 
-    # },
-    # {
-    #     "type": "single_choice",
-    #     "keyword" : "lsat-rc",
-    # },
-    # {
-    #     "type": "single_choice",
-    #     "keyword" : "gaokao-chemistry", 
-    # },
-    # {
-    #     "type": "single_choice",
-    #     "keyword" : "logiqa-en",
-    # },
-    # {
-    #     "type": "single_choice",
-    #     "keyword" : "gaokao-chinese", 
-    # },
-    # {
-    #     "type": "single_choice",
-    #     "keyword" : "logiqa-zh", 
-    # },
-    # {
-    #     "type": "single_choice",
-    #     "keyword" : "sat-en-without-passage", 
-    # },
-    # {
-    #     "type": "single_choice",
-    #     "keyword" : "gaokao-english",
-    # },
-    # {
-    #     "type": "single_choice",
-    #     "keyword" : "lsat-ar", 
-    # },
-    # {
-    #     "type": "single_choice",
-    #     "keyword" : "sat-en", 
-    # },
-    # {
-    #     "type": "multi_question_choice",
-    #     "keyword" : "gaokao-physics", 
-    # },
-    # {
-    #     "type": "multi_question_choice",
-    #     "keyword" : "jec-qa-ca", 
-    # },
-    # {
-    #     "type": "multi_question_choice",
-    #     "keyword" : "jec-qa-kd", 
-    # },
-    # {
-    #     "type": "multi_question_choice",
-    #     "keyword" : "gaokao-mathqa",
-    # },
+    {
+        "type": "single_choice",
+        "keyword" : "sat-math",
+    },
+    {
+        "type": "single_choice",
+        "keyword" : "gaokao-biology", 
+    },
+    {
+        "type": "single_choice",
+        "keyword" : "gaokao-history", 
+    },
+    {
+        "type": "single_choice",
+        "keyword" : "lsat-rc",
+    },
+    {
+        "type": "single_choice",
+        "keyword" : "gaokao-chemistry", 
+    },
+    {
+        "type": "single_choice",
+        "keyword" : "logiqa-en",
+    },
+    {
+        "type": "single_choice",
+        "keyword" : "gaokao-chinese", 
+    },
+    {
+        "type": "single_choice",
+        "keyword" : "logiqa-zh", 
+    },
+    {
+        "type": "single_choice",
+        "keyword" : "sat-en-without-passage", 
+    },
+    {
+        "type": "single_choice",
+        "keyword" : "gaokao-english",
+    },
+    {
+        "type": "single_choice",
+        "keyword" : "lsat-ar", 
+    },
+    {
+        "type": "single_choice",
+        "keyword" : "sat-en", 
+    },
+    {
+        "type": "multi_question_choice",
+        "keyword" : "gaokao-physics", 
+    },
+    {
+        "type": "multi_question_choice",
+        "keyword" : "jec-qa-ca", 
+    },
+    {
+        "type": "multi_question_choice",
+        "keyword" : "jec-qa-kd", 
+    },
+    {
+        "type": "multi_question_choice",
+        "keyword" : "gaokao-mathqa",
+    },
     # "gaokao-mathcloze", # TODO: 包括填空题
     # "math", # TODO: 包括填空题
 ]
