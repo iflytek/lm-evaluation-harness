@@ -49,70 +49,70 @@ SUBJECTS=[
         "type": "single_choice",
         "keyword" : "lsat-lr", 
     },
-    {
-        "type": "single_choice",
-        "keyword" : "sat-math",
-    },
-    {
-        "type": "single_choice",
-        "keyword" : "gaokao-biology", 
-    },
-    {
-        "type": "single_choice",
-        "keyword" : "gaokao-history", 
-    },
-    {
-        "type": "single_choice",
-        "keyword" : "lsat-rc",
-    },
-    {
-        "type": "single_choice",
-        "keyword" : "gaokao-chemistry", 
-    },
-    {
-        "type": "single_choice",
-        "keyword" : "logiqa-en",
-    },
-    {
-        "type": "single_choice",
-        "keyword" : "gaokao-chinese", 
-    },
-    {
-        "type": "single_choice",
-        "keyword" : "logiqa-zh", 
-    },
-    {
-        "type": "single_choice",
-        "keyword" : "sat-en-without-passage", 
-    },
-    {
-        "type": "single_choice",
-        "keyword" : "gaokao-english",
-    },
-    {
-        "type": "single_choice",
-        "keyword" : "lsat-ar", 
-    },
-    {
-        "type": "single_choice",
-        "keyword" : "sat-en", 
-    },
-    {
-        "type": "multi_question_choice",
-        "keyword" : "gaokao-physics", 
-    },
-    {
-        "type": "multi_question_choice",
-        "keyword" : "jec-qa-ca", 
-    },
-    {
-        "type": "multi_question_choice",
-        "keyword" : "jec-qa-kd", 
-    },
-    {
-        "type": "multi_question_choice",
-        "keyword" : "gaokao-mathqa",
-    },
+    # {
+    #     "type": "single_choice",
+    #     "keyword" : "sat-math",
+    # },
+    # {
+    #     "type": "single_choice",
+    #     "keyword" : "gaokao-biology", 
+    # },
+    # {
+    #     "type": "single_choice",
+    #     "keyword" : "gaokao-history", 
+    # },
+    # {
+    #     "type": "single_choice",
+    #     "keyword" : "lsat-rc",
+    # },
+    # {
+    #     "type": "single_choice",
+    #     "keyword" : "gaokao-chemistry", 
+    # },
+    # {
+    #     "type": "single_choice",
+    #     "keyword" : "logiqa-en",
+    # },
+    # {
+    #     "type": "single_choice",
+    #     "keyword" : "gaokao-chinese", 
+    # },
+    # {
+    #     "type": "single_choice",
+    #     "keyword" : "logiqa-zh", 
+    # },
+    # {
+    #     "type": "single_choice",
+    #     "keyword" : "sat-en-without-passage", 
+    # },
+    # {
+    #     "type": "single_choice",
+    #     "keyword" : "gaokao-english",
+    # },
+    # {
+    #     "type": "single_choice",
+    #     "keyword" : "lsat-ar", 
+    # },
+    # {
+    #     "type": "single_choice",
+    #     "keyword" : "sat-en", 
+    # },
+    # {
+    #     "type": "multi_question_choice",
+    #     "keyword" : "gaokao-physics", 
+    # },
+    # {
+    #     "type": "multi_question_choice",
+    #     "keyword" : "jec-qa-ca", 
+    # },
+    # {
+    #     "type": "multi_question_choice",
+    #     "keyword" : "jec-qa-kd", 
+    # },
+    # {
+    #     "type": "multi_question_choice",
+    #     "keyword" : "gaokao-mathqa",
+    # },
     # "gaokao-mathcloze", # TODO: 包括填空题
     # "math", # TODO: 包括填空题
 ]
@@ -214,7 +214,7 @@ class AGIEvalSubject(Task):
         if self.has_test_docs():
             return map(self._process_doc, self.dataset["train"]) 
 
-    def _process_single_doc_gold(self, ans):
+    def _get_doc_gold(self, ans):
         if ans is None:
             if self.question_type == "single_choice":
                 return '-1'
@@ -258,8 +258,8 @@ class AGIEvalSubject(Task):
             }
         }
         '''
-        gold = self._process_single_doc_gold(doc["label"]) \
-            if doc["label"] else self._process_single_doc_gold(doc["answer"])
+        gold = self._get_doc_gold(doc["label"]) \
+            if doc["label"] else self._get_doc_gold(doc["answer"])
         out_doc = {
                 "passage": doc.get("passage"),
                 "query": doc["question"],
@@ -297,7 +297,7 @@ class AGIEvalSubject(Task):
                     return passage + "问题：" + doc.get("query") + "\n" \
                             "答案：让我们逐步思考："
             except NameError:
-                print("Dataset not defined.") 
+                raise ValueError("Dataset not defined.") 
 
     def get_few_sort_example(self, doc):
         try:
@@ -316,7 +316,7 @@ class AGIEvalSubject(Task):
             if self.DATASET_NAME in chinese_cloze_datasets:
                 return "\n\n问题 :   "  + passage + " " + doc.get("query") + "\n"
         except NameError:
-            print("Dataset not defined.") 
+            raise ValueError("Dataset not defined.") 
 
     def doc_to_text(self, doc, k):
         if k == 0:
@@ -354,6 +354,8 @@ class AGIEvalSubject(Task):
 
             if labeled_examples is None:
                 labeled_examples = ""
+            else:
+                raise ValueError("The dataset is not supported")
 
         example = self.doc_to_text(doc, num_fewshot)
         return description + labeled_examples + example
@@ -364,6 +366,7 @@ class AGIEvalSubject(Task):
                 rf.loglikelihood(ctx, " {}".format(choice))[0] for choice in doc["choices"]
             ]
         else:
+            # model_max_length 可以指定模型生成序列的长度，没有被使用，但是在代码中保留着
             # completion = rf.greedy_until(ctx, {"until": [], "model_max_length": 4096})
             completion = rf.greedy_until(ctx, {"until": []})
         return completion
@@ -415,7 +418,7 @@ class AGIEvalSubject(Task):
         if RAPID_PREDICTION:
             gold = ord(doc['gold'][0]) - ord('A')
             pred = np.argmax(results)
-            print(self.DATASET_NAME ,'pred', pred, 'gold', gold)
+            # print(self.DATASET_NAME ,'pred', pred, 'gold', gold)
             return {"acc": int(pred == gold)}
         else:
             completion = results[0].strip()
