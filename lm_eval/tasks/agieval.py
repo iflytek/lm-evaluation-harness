@@ -435,7 +435,6 @@ class AGIEvalSubject(Task):
         if RAPID_PREDICTION:
             gold = ord(doc['gold'][0]) - ord('A')
             pred = np.argmax(results)
-            print(self.DATASET_NAME , self.fewshot_context(doc, num_fewshot=0, provide_description=0, rnd=0) ,'results', [item/sum(results) for item in results], 'gold', gold)
             return {"acc": int(pred == gold)}
         else:
             completion = results[0].strip()
