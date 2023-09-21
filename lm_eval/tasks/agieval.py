@@ -271,8 +271,26 @@ class AGIEvalSubject(Task):
 
     def get_zero_sort_example(self, doc):
         passage = doc.get("passage") if doc.get("passage") is not None else ""
-        if RAPID_PREDICTION:
-            return passage + " " + doc.get("query")
+        if RAPID_PREDICTION:      
+            if self.DATASET_NAME in english_qa_datasets:
+                option_string = "ABCDEFG"
+                count = len(doc.get("choices"))
+                if count == 1:
+                    count = 4
+                return passage + "Question: " + doc.get("query") + " " \
+                    + "\nChoices: " + "\n".join(doc.get("choices")) + "\n" + \
+                    "\nAnswer: From options A to {}, we should choose".format(option_string[count - 1])
+            
+            elif self.DATASET_NAME in chinese_qa_datasets:
+                option_string = "ABCDEFG"
+                count = len(doc.get("choices"))
+                if count == 1:
+                    count = 4
+                return passage + "问题：" + doc.get("query") + " " \
+                    + "\n选项：\n" + "\n".join(doc.get("choices")) + "\n" + \
+                    "\n答案：从A到{}, 我们应选择".format(option_string[count - 1])
+            else:
+                raise ValueError("Dataset not defined.") 
         else:
             try:
                 if self.DATASET_NAME in english_qa_datasets:
@@ -393,7 +411,6 @@ class AGIEvalSubject(Task):
             
         model_answer = [item.replace('(', '').replace(')', '')
             for item in re.findall(pattern, end_line)] 
-        print("model_output\n", model_output, "\nmodel_answer\n", model_answer, '--- \n')
         return model_answer
 
     def _convert_to_set(self, item):
@@ -418,7 +435,7 @@ class AGIEvalSubject(Task):
         if RAPID_PREDICTION:
             gold = ord(doc['gold'][0]) - ord('A')
             pred = np.argmax(results)
-            # print(self.DATASET_NAME ,'pred', pred, 'gold', gold)
+            print(self.DATASET_NAME , self.fewshot_context(doc, num_fewshot=0, provide_description=0, rnd=0) ,'results', [item/sum(results) for item in results], 'gold', gold)
             return {"acc": int(pred == gold)}
         else:
             completion = results[0].strip()
