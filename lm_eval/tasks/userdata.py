@@ -62,7 +62,7 @@ class UserDataGen(Task):
         return " " + doc["answer"].strip()
 
     def construct_requests(self, doc, ctx):
-        completion = rf.greedy_until(ctx, {"until": ['\n\n', '### Instruction']})
+        completion = rf.greedy_until(ctx, {"until": ['### Instruction']})
         return completion
 
     def process_results(self, doc, results):
@@ -74,10 +74,13 @@ class UserDataGen(Task):
         references = ' '.join(jieba.cut(ref))
         predictions = ' '.join(jieba.cut(completion))
         # BLEU
-        bleu_score = self.bleu([[references]], [predictions])
+        if references == '' or references == None:
+            bleu_score = 0
+        else:
+            bleu_score = self.bleu([[references]], [predictions])
     
         # ROUGE-N
-        if predictions == '' or predictions == None:
+        if predictions == '' or predictions == None or references == '' or references == None:
             rouge1_score = rouge2_score = rougeL_score = 0
         else:
             rouge_results = self.rouge(references, predictions)
