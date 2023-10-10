@@ -13,10 +13,10 @@ interview questions.
 
 https://github.com/openai/human-eval
 """
-from lm_eval.base import Task
+from lm_eval.base import Task, rf
+from lm_eval.metrics import mean
 
 
-# TODO: Add the BibTeX citation for the task.
 _CITATION = """
 @article{chen2021codex,
   title={Evaluating Large Language Models Trained on Code},
@@ -29,26 +29,18 @@ _CITATION = """
 """
 
 
-# TODO: Replace `NewTask` with the name of your Task.
-class NewTask(Task):
+class humaneval(Task):
     VERSION = 0
-    # TODO: Add the `DATASET_PATH` string. This will be the name of the `Task`
-    # dataset as denoted in HuggingFace `datasets`.
-    DATASET_PATH = ""
-    # TODO: Add the `DATASET_NAME` string. This is the name of a subset within
-    # `DATASET_PATH`. If there aren't specific subsets you need, leave this as `None`.
+    DATASET_PATH = "openai_humaneval"
     DATASET_NAME = None
 
     def has_training_docs(self):
-        # TODO: Fill in the return with `True` if the Task has training data; else `False`.
         return False
 
     def has_validation_docs(self):
-        # TODO: Fill in the return with `True` if the Task has validation data; else `False`.
         return False
 
     def has_test_docs(self):
-        # TODO: Fill in the return with `True` if the Task has test data; else `False`.
         return True
 
     def training_docs(self):
@@ -90,11 +82,14 @@ class NewTask(Task):
 
     def _process_doc(self, doc):
         
-        return doc['prompt']
+        return {
+            "prompt" : doc["prompt"],
+            "task_id" : doc["task_id"],
+        } 
 
     def doc_to_text(self, doc):
         # TODO: Format the query prompt portion of the document example.
-        return ""
+        return doc["prompt"]
 
     def doc_to_target(self, doc):
         # TODO: Fill in the `target` ("gold answer") variable.
@@ -102,6 +97,12 @@ class NewTask(Task):
         # `doc_to_target` strings.
         target = ""
         return " " + target
+
+    
+    def fewshot_context(self, doc, num_fewshot, **kwargs):
+        assert num_fewshot == 0, "humaneval is intended only for the zero-shot setting."
+        kwargs["description"] = "Complete the following python code:"
+        return super().fewshot_context(doc=doc, num_fewshot=num_fewshot, **kwargs)
 
     def construct_requests(self, doc, ctx):
         """Uses RequestFactory to construct Requests and returns an iterable of
@@ -117,7 +118,7 @@ class NewTask(Task):
         """
         # TODO: Construct your language model requests with the request factory, `rf`,
         # and return them as an iterable.
-        return []
+        return rf.greedy_until(ctx, {"until": []})
 
     def process_results(self, doc, results):
         """Take a single document and the LM results and evaluates, returning a
@@ -132,7 +133,30 @@ class NewTask(Task):
         # TODO: For each (sub)metric in the task evaluation, add a key-value pair
         # with the metric name as key and the corresponding metric result as value
         # for the current `doc`.
-        return {}
+        # from human_eval.data import HUMAN_EVAL, write_jsonl
+        # from human_eval.evaluation import evaluate_functional_correctness
+        # import tempfile
+        # import os.path as osp
+        
+        # predictions = [{
+        #         'task_id': doc['task_id'],
+        #         'completion' : results
+        #     }]
+        # with tempfile.TemporaryDirectory() as tmp_dir:
+        #     out_dir = osp.join(tmp_dir, 'human_eval.json')
+        #     write_jsonl(out_dir, predictions)
+
+        #     k = [1, 10, 100]
+        #     score = evaluate_functional_correctness(out_dir,
+        #                       k,
+        #                       n_workers=4,
+        #                       timeout=3.0,
+        #                       problem_file=HUMAN_EVAL)
+        scoure = 0
+        print('scoure', scoure, 'result', results)
+        return {
+            'scoure' : scoure
+        }
 
     def aggregation(self):
         """
@@ -144,10 +168,12 @@ class NewTask(Task):
         # with the metric name as key and an aggregation function as value which
         # determines how to combine results from each document in the dataset.
         # Check `lm_eval.metrics` to find built-in aggregation functions.
-        return {}
+        return {
+            'scoure' : mean}
 
     def higher_is_better(self):
         # TODO: For each (sub)metric in the task evaluation, add a key-value pair
         # with the metric name as key and a `bool` value determining whether or
         # not higher values of that metric are deemed better.
-        return {}
+        return {
+            'scoure' : True}
