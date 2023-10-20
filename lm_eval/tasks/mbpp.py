@@ -60,21 +60,16 @@ class mbpp(Task):
         
         return {
             "text" : doc["text"],
-            "test_list" : '\n'.join(doc['test_list']),
+            "test_list" : '\n'.join([item.strip() for item in doc['test_list']]),
+            "code" : doc["code"]
         } 
 
     def doc_to_text(self, doc):
-        return "Question:\n You are an expert Python programmer, and here is your task: {0} Your code should pass these tests:\n\n {1}".format(doc["text"], doc["test_list"])
+        return "Question: here is your task: {0} Your code should pass these tests:\n\n {1}".format(doc["text"], doc["test_list"])
 
     def doc_to_target(self, doc):
         target = ""
-        return " " + target
-
-    
-    def fewshot_context(self, doc, num_fewshot, **kwargs):
-        assert num_fewshot == 0, "mdpp is intended only for the zero-shot setting."
-        kwargs["description"] = "Question:\n You are an expert Python programmer, and here is your task: Write a function to find the similar elements from the given two tuple lists. Your code should pass these tests:\n\n assert similar_elements((3, 4, 5, 6),(5, 7, 4, 10)) == (4, 5)\n assert similar_elements((1, 2, 3, 4),(5, 4, 3, 7)) == (3, 4) \n assert similar_elements((11, 12, 14, 13),(17, 15, 14, 13)) == (13, 14) \n Answer:\n [BEGIN]\n 'def similar_elements(test_tup1, test_tup2):\r\n  res = tuple(set(test_tup1) & set(test_tup2))\r\n  return (res)' \n[DONE] \n\n Question:\n You are an expert Python programmer, and here is your task: Write a python function to identify non-prime numbers. Your code should pass these tests:\n\n assert is_not_prime(2) == False \n assert is_not_prime(10) == True \n assert is_not_prime(35) == True \n Answer:\n [BEGIN]\n 'import math\r\ndef is_not_prime(n):\r\n    result = False\r\n    for i in range(2,int(math.sqrt(n)) + 1):\r\n        if n % i == 0:\r\n            result = True\r\n    return result' \n[DONE] \n\n Question:\n You are an expert Python programmer, and here is your task: Write a function to find the largest integers from a given list of numbers using heap queue algorithm. Your code should pass these tests:\n\n assert heap_queue_largest( [25, 35, 22, 85, 14, 65, 75, 22, 58],3)==[85, 75, 65] \n assert heap_queue_largest( [25, 35, 22, 85, 14, 65, 75, 22, 58],2)==[85, 75] \n assert heap_queue_largest( [25, 35, 22, 85, 14, 65, 75, 22, 58],5)==[85, 75, 65, 58, 35] \n Answer:\n [BEGIN]\n 'import heapq as hq\r\ndef heap_queue_largest(nums,n):\r\n  largest_nums = hq.nlargest(n, nums)\r\n  return largest_nums' \n[DONE] \n\n"
-        return super().fewshot_context(doc=doc, num_fewshot=num_fewshot, **kwargs)
+        return "Answer:\n [BEGIN]\n '{0}' \n[DONE] \n\n".format(doc["code"])
 
     def construct_requests(self, doc, ctx):
         return rf.greedy_until(ctx, {"until": []})
@@ -118,6 +113,7 @@ class mbpp(Task):
     class redirect_stdin(contextlib._RedirectStream):  # type: ignore
         _stream = 'stdin'
 
+    @contextlib.contextmanager
     def swallow_io(self):
         stream = self.WriteOnlyStringIO()
         with contextlib.redirect_stdout(stream):
@@ -125,6 +121,7 @@ class mbpp(Task):
                 with self.redirect_stdin(stream):
                     yield
 
+    @contextlib.contextmanager
     def time_limit(self, seconds: float):
 
         def signal_handler(signum, frame):
@@ -151,9 +148,12 @@ class mbpp(Task):
         programs = self._process_test(doc["test_list"], predictions)
 
         _pass = timeout = wrong_answer = failed = 0
-        try:
+        print(programs)
+        try:                
             exec_globals = {}
-            exec(programs, exec_globals)
+            with self.swallow_io():
+                with self.time_limit(2):
+                    exec(programs, exec_globals)
             _pass += 1
         except TimeOutException:
             timeout += 1
@@ -163,7 +163,7 @@ class mbpp(Task):
             failed += 1
 
         return {
-            '_pass' : _pass,
+            'pass' : _pass,
             'timeout' : timeout,
             'wrong_answer' : wrong_answer,
             'failed' : failed,
@@ -176,7 +176,7 @@ class mbpp(Task):
             functions that aggregate a list of metric scores
         """
         return {
-            '_pass' : mean,
+            'pass' : mean,
             'timeout' : mean,
             'wrong_answer' : mean,
             'failed' : mean,
@@ -184,7 +184,7 @@ class mbpp(Task):
 
     def higher_is_better(self):
         return {
-        '_pass' : True,
+        'pass' : True,
         'timeout' : True,
         'wrong_answer' : True,
         'failed' : True,
