@@ -69,6 +69,7 @@ from . import cmmlu
 from . import gaokao
 from . import agieval
 from . import userdata
+from . import mbpp
 ########################################
 # Translation tasks
 ########################################
@@ -353,6 +354,7 @@ TASK_REGISTRY = {
     **gaokao.create_all_tasks(),
     **agieval.create_all_tasks(),
     "private":userdata.UserDataGen,
+    "mbpp" : mbpp.mbpp,
 }
 
 
