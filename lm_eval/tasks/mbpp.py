@@ -65,7 +65,7 @@ class mbpp(Task):
         } 
 
     def doc_to_text(self, doc):
-        return "Question: here is your task: {0} Your code should pass these tests:\n\n {1}".format(doc["text"], doc["test_list"])
+        return "Question: \n You are an expert Python programmer, and here is your task: {0} Your code should pass these tests:\n\n {1}".format(doc["text"], doc["test_list"])
 
     def doc_to_target(self, doc):
         target = ""
