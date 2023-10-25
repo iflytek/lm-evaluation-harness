@@ -1,11 +1,11 @@
 # TODO: Remove all TODO comments once the implementation is complete.
 """
-TODO: Add the Paper Title on this line.
-TODO: Add the paper's PDF URL (preferably from arXiv) on this line.
+What Disease does this Patient Have? A Large-scale Open Domain Question Answering Dataset from Medical Exams
+https://arxiv.org/pdf/2009.13081v1.pdf
 
-TODO: Write a Short Description of the task.
+Multiple choice question answering based on the United States Medical License Exams (USMLE). The dataset is collected from the professional medical board exams. It covers three languages: English, simplified Chinese, and traditional Chinese, and contains 12,723, 34,251, and 14,123 questions for the three languages, respectively.
 
-Homepage: TODO: Add the URL to the task's Homepage here.
+Homepage: https://drive.google.com/file/d/1ImYUSLk9JbgHXOemfvyiDiirluZHPeQw/view
 """
 from lm_eval.base import MultipleChoiceTask
 from lm_eval.base import Task, rf
@@ -14,29 +14,26 @@ import numpy as np
 
 # TODO: Add the BibTeX citation for the task.
 _CITATION = """
+@article{jin2020disease,
+  title={What Disease does this Patient Have? A Large-scale Open Domain Question Answering Dataset from Medical Exams},
+  author={Jin, Di and Pan, Eileen and Oufattole, Nassim and Weng, Wei-Hung and Fang, Hanyi and Szolovits, Peter},
+  journal={arXiv preprint arXiv:2009.13081},
+  year={2020}
+}
 """
 
-
-# TODO: Replace `NewTask` with the name of your Task.
 class MedQA(MultipleChoiceTask):
     VERSION = 0
-    # TODO: Add the `DATASET_PATH` string. This will be the name of the `Task`
-    # dataset as denoted in HuggingFace `datasets`.
     DATASET_PATH = "med_qa"
-    # TODO: Add the `DATASET_NAME` string. This is the name of a subset within
-    # `DATASET_PATH`. If there aren't specific subsets you need, leave this as `None`.
     DATASET_NAME = None
 
     def has_training_docs(self):
-        # TODO: Fill in the return with `True` if the Task has training data; else `False`.
         return True
 
     def has_validation_docs(self):
-        # TODO: Fill in the return with `True` if the Task has validation data; else `False`.
         return True
 
     def has_test_docs(self):
-        # TODO: Fill in the return with `True` if the Task has test data; else `False`.
         return True
 
     def training_docs(self):
