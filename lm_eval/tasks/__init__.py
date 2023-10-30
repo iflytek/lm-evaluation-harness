@@ -70,6 +70,7 @@ from . import gaokao
 from . import agieval
 from . import userdata
 from . import mbpp
+from . import med_qa
 ########################################
 # Translation tasks
 ########################################
@@ -355,6 +356,7 @@ TASK_REGISTRY = {
     **agieval.create_all_tasks(),
     "private":userdata.UserDataGen,
     "mbpp" : mbpp.mbpp,
+    "MedQA" : med_qa.MedQA,
 }
 
 
